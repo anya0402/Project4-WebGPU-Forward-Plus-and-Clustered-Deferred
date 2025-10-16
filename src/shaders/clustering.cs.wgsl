@@ -28,43 +28,45 @@
 
 @compute
 @workgroup_size(${clusterWorkgroupSize})
-fn main(@builtin(global_invocation_id) index: vec3u) { 
+fn main(@builtin(global_invocation_id) index: vec3u) {
     let clusterIndex = index.x + index.y * clusterSet.numClusters[0] + index.z * clusterSet.numClusters[0] * clusterSet.numClusters[1];
-    // let currCluster = clusterSet.clusters[clusterIndex];
 
-    // xy screen space
+    // xy screen space 
     let xScreen = 2.0 / f32(clusterSet.numClusters[0]);
     let yScreen = 2.0 / f32(clusterSet.numClusters[1]);
-    let xMin = -1.0 + (f32(index.x) * xScreen); //offset
+    let xMin = -1.0 + (f32(index.x) * xScreen);
     let yMin = -1.0 + (f32(index.y) * yScreen);
     let xMax = xMin + xScreen;
     let yMax = yMin + yScreen;
 
     // z depth bounds - log slice
     let zNear = ${nearPlane} * pow(${farPlane} / ${nearPlane}, f32(index.z) / f32(clusterSet.numClusters[2]));
-    let zFar = ${nearPlane} * pow(${farPlane} / ${nearPlane}, f32(index.z + 1u) / f32(clusterSet.numClusters[2]));
+    let zFar  = ${nearPlane} * pow(${farPlane} / ${nearPlane}, f32(index.z + 1u) / f32(clusterSet.numClusters[2]));
 
     let screenMinPt = vec4f(xMin, yMin, -1.0, 1.0);
     let screenMaxPt = vec4f(xMax, yMax, -1.0, 1.0);
     let invView = cameraUniforms.invViewProjMat;
-    let viewMinPt = invView * screenMinPt;
-    let viewMaxPt = invView * screenMaxPt;
-    let newViewMinPt = viewMinPt / viewMinPt.w;
-    let newViewMaxPt = viewMaxPt / viewMaxPt.w;
+    var worldMinPt = invView * screenMinPt;
+    var worldMaxPt = invView * screenMaxPt;
+    worldMinPt = worldMinPt / worldMinPt.w;
+    worldMaxPt = worldMaxPt / worldMaxPt.w;
 
-    let finalMinPt = normalize(newViewMinPt.xyz) * zNear;
-    let finalMaxPt = normalize(newViewMaxPt.xyz) * zFar;
+    let camPos = cameraUniforms.invViewMat * vec4(0,0,0,1);
+    let camDirMin = normalize(worldMinPt.xyz - camPos.xyz);
+    let camDirMax = normalize(worldMaxPt.xyz - camPos.xyz);
+    let finalMinPt = camPos.xyz + camDirMin * zNear;
+    let finalMaxPt = camPos.xyz + camDirMax * zFar;
 
     let aabbMin = min(finalMinPt, finalMaxPt);
-    let aabbMax = max(finalMinPt, finalMaxPt);;
+    let aabbMax = max(finalMinPt, finalMaxPt);
 
     clusterSet.clusters[clusterIndex].aabbMin = aabbMin;
     clusterSet.clusters[clusterIndex].aabbMax = aabbMax;
 
     // assign lights
     let numLights = lightSet.numLights;
-    var lightCount: u32 = 0;
-    for (var i: u32 = 0u; i < numLights; i++) {
+    var lightCount: u32 = 0u;
+    for (var i: u32 = 0u; i < numLights; i = i + 1u) {
         if (lightCount < ${maxLightsPerCluster}) {
             let currLight = lightSet.lights[i];
             let pointNearBox = clamp(currLight.pos, aabbMin, aabbMax);
@@ -72,10 +74,10 @@ fn main(@builtin(global_invocation_id) index: vec3u) {
             let isIntersected = distToPoint < ${lightRadius};
             if (isIntersected) {
                 clusterSet.clusters[clusterIndex].light_indices[lightCount] = i;
-                lightCount++;
+                lightCount = lightCount + 1u;
             }
         }
     }
     clusterSet.clusters[clusterIndex].numLights = lightCount;
-
 }
+

@@ -49,7 +49,7 @@ fn main(in: FragmentInput) -> @location(0) vec4f
 
     let clusterX = u32(clamp(fragScreen.x * f32(clusterSet.numClusters[0]), 0.0, f32(clusterSet.numClusters[0] - 1)));
     let clusterY = u32(clamp(fragScreen.y * f32(clusterSet.numClusters[1]), 0.0, f32(clusterSet.numClusters[1] - 1)));
-    let clusterZ = u32(clamp(zDepth * f32(clusterSet.numClusters[2]), 0.0, f32(clusterSet.numClusters[2] - 1)));
+    let clusterZ = u32(clamp(zDepth, 0.0, f32(clusterSet.numClusters[2] - 1)));
 
     let clusterIdx = clusterX + clusterY * clusterSet.numClusters[0] + clusterZ * clusterSet.numClusters[0] * clusterSet.numClusters[1];
     // let currCluster = clusterSet.clusters[clusterIdx];
@@ -59,7 +59,9 @@ fn main(in: FragmentInput) -> @location(0) vec4f
         let light = lightSet.lights[clusterSet.clusters[clusterIdx].light_indices[lightIdx]];
         totalLightContrib += calculateLightContrib(light, in.pos, normalize(in.nor));
     }
-
+    
     var finalColor = diffuseColor.rgb * totalLightContrib;
     return vec4(finalColor, 1);
+    
+
 }
