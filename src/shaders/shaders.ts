@@ -36,14 +36,14 @@ export const constants = {
     nearPlane: 0.1,
     farPlane: 1000.0,
 
-    clusterDimX: 16,
-    clusterDimY: 9,
-    clusterDimZ: 16,
+    clusterDimX: 12,
+    clusterDimY: 6,
+    clusterDimZ: 12,
     clusterWorkgroupSizeX: 8,
-    clusterWorkgroupSizeY: 8,
-    clusterWorkgroupSizeZ: 1,
+    clusterWorkgroupSizeY: 4,
+    clusterWorkgroupSizeZ: 4,
 
-    clusterWorkgroupSize: 256
+    clusterWorkgroupSize: 128
 
 };
 

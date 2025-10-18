@@ -57,7 +57,7 @@ fn main(in: FragmentInput) -> @location(0) vec4f
     var totalLightContrib = vec3f(0, 0, 0);
     for (var lightIdx = 0u; lightIdx < clusterSet.clusters[clusterIdx].numLights; lightIdx++) {
         let light = lightSet.lights[clusterSet.clusters[clusterIdx].light_indices[lightIdx]];
-        totalLightContrib += calculateLightContrib(light, in.pos, normalize(in.nor));
+        totalLightContrib += calculateLightContrib(light, in.pos, in.nor);
     }
     
     var finalColor = diffuseColor.rgb * totalLightContrib;
