@@ -21,7 +21,7 @@ Click on the image to view the live demo website!
 
 ### Demo Video
 
-[Click here to see a video demo!](img/video_demo.mp4)
+<img src="img/proj4_licecap.gif" width="700"/>
 
 ## Overview
 
